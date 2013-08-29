@@ -2,6 +2,8 @@ include(resource-viewer.user.pri)
 
 QT += core gui network
 
+VERSION = 0.9.0
+
 SOURCES += \
     main.cpp \
     resourceviewer.cpp \
@@ -26,4 +28,5 @@ LIBS += $${ZERANETCLIENT_LIBPATH} -lzeranetclient
 LIBS += $${ZERA_PROTOBUF_LIBPATH} -lzera-resourcemanager-protobuf
 LIBS += $${SCPI_LIBPATH} -lSCPI
 
-VERSION = 0.9.0
+target.path = /usr/bin
+INSTALLS += target
