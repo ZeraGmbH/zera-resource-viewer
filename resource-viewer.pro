@@ -25,3 +25,5 @@ LIBS += -lprotobuf
 LIBS += $${ZERANETCLIENT_LIBPATH} -lzeranetclient
 LIBS += $${ZERA_PROTOBUF_LIBPATH} -lzera-resourcemanager-protobuf
 LIBS += $${SCPI_LIBPATH} -lSCPI
+
+VERSION = 0.9.0
