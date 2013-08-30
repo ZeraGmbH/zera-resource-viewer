@@ -95,7 +95,10 @@ void ScpiClient::onDisconnected()
     m_pNetClient->deleteLater();
     signalModelDeleted();
     if(m_pScpiModel != 0)
+    {
         delete m_pScpiModel;
+        m_pScpiModel = 0;
+    }
 }
 
 void ScpiClient::onMessageReceived(QByteArray message)
@@ -120,6 +123,7 @@ void ScpiClient::onMessageReceived(QByteArray message)
                 {
                     signalModelDeleted();
                     delete m_pScpiModel;
+                    m_pScpiModel = 0;
                 }
                 m_pScpiModel = new cSCPI("SCPIClient");
                 QByteArray tmpArr;
