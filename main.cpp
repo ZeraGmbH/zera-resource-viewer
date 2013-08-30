@@ -29,7 +29,7 @@ int main(int argc, char** argv)
         QObject::connect(client, SIGNAL(signalModelDeleted()), &w, SLOT(unsetScpiModel()), Qt::DirectConnection);
         QObject::connect(&w, SIGNAL(forwardUpdateResources()), client, SIGNAL(signalUpdateModel()));
         QObject::connect(&w, SIGNAL(forwardSendSCPI(QString)), client, SIGNAL(signalSendSCPIMessage(QString)));
-        QObject::connect(client, SIGNAL(signalSCPIResponse(QString, bool)), &w, SLOT(AppendSCPIResponse(QString, bool)));
+        QObject::connect(client, SIGNAL(signalAppendLogString(QString, LogHelper::enLogTypes)), &w, SLOT(AppendLogString(QString, LogHelper::enLogTypes)));
 
         w.show();
         client->start(strIPAdress, ui16Port);

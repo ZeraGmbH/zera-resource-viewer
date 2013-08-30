@@ -6,6 +6,7 @@
 #include <QStateMachine>
 #include <QFinalState>
 #include <QString>
+#include "loghelper.h"
 
 namespace Zera
 {
@@ -15,6 +16,7 @@ namespace Zera
   }
 }
 
+// forwards
 class cSCPI;
 
 
@@ -73,18 +75,22 @@ signals:
      */
     void signalSendSCPIMessage(QString strCmd);
     /**
-     * @brief Server's SCPI command response is transferred by this slot.
-     * @param strResponse SCPI-command response
-     * @param bCommandAccepted In case server has responded with NACK or ERROR this parameter is false.
+     * @brief Notify our state machine for Server's SCPI command response
      */
-    void signalSCPIResponse(QString strResponse, bool bCommandAccepted);
-
+    void signalSCPIResponse();
+    /**
+     * @brief Signal to append a log string
+     * @param strMsg Message to log
+     * @param eType Type of message
+     */
+    void signalAppendLogString(QString strMsg, LogHelper::enLogTypes eType);
 public slots:
     /**
      * @brief To send a SCPI command this slot can be called directly or by signal signalSendSCPIMessage().
-     * @param strCmd
+     * @param strCmd SCPI command to send
      */
-    void sendSCPIMessage(QString strCmd);
+    void slotSendSCPIMessage(QString strCmd);
+
 private slots:
     /**
      * @brief ScpiClient::m_pNetClient is created here, the transitions caused by network connection
@@ -120,6 +126,11 @@ private:
      * @brief All states and transitions (except those linked to ScpiClient::m_pNetClient) are established here
      */
     void setupStateMachine();
+    /**
+     * @brief To send a SCPI command we call this function.
+     * @param strCmd
+     */
+    void sendSCPIMessage(QString strCmd);
 
     /**
      * @brief Our one and only instance.

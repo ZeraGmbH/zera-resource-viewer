@@ -8,12 +8,14 @@ SOURCES += \
     main.cpp \
     resourceviewer.cpp \
     scpiclient.cpp \
-    settingsdialog.cpp
+    settingsdialog.cpp \
+    loghelper.cpp
 
 HEADERS += \
     resourceviewer.h \
     scpiclient.h \
-    settingsdialog.h
+    settingsdialog.h \
+    loghelper.h
 
 FORMS += \
     resource-viewer.ui \

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QStandardItemModel>
+#include "loghelper.h"
 
 namespace Ui
 {
@@ -39,7 +40,7 @@ public slots:
      * @brief Unset the model for tree view. This slot should be called before passing to a new model
      */
     void unsetScpiModel();
-    void AppendLogString(QString strSCPIResponse, bool bCommandAccepted);
+    void AppendLogString(QString strSCPIResponse, LogHelper::enLogTypes logType);
 private slots:
     /**
      * @brief Handler for "Send" button sending command found in ResourceViewerWidget::m_pUI->leCmd

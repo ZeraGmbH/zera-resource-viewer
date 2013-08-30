@@ -1,5 +1,5 @@
-#include "resourceviewer.h"
 #include <QMessageBox>
+#include "resourceviewer.h"
 #include "ui_resource-viewer.h"
 
 ResourceViewerWidget::ResourceViewerWidget(QWidget *parent) :
@@ -39,11 +39,7 @@ void ResourceViewerWidget::unsetScpiModel()
     m_pUI->tvScpiNodeViewer->setModel(0);
 }
 
-void ResourceViewerWidget::AppendLogString(QString strSCPIResponse, bool bCommandAccepted)
+void ResourceViewerWidget::AppendLogString(QString strSCPIResponse, LogHelper::enLogTypes logType)
 {
-    if(!bCommandAccepted)
-    {
-        strSCPIResponse = "<b style=\"color:red\">" + strSCPIResponse + "</b>";
-    }
-    m_pUI->tbResponse->append(strSCPIResponse);
+    m_pUI->tbResponse->append(LogHelper::formatMessage(strSCPIResponse, logType));
 }

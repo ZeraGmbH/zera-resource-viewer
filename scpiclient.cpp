@@ -1,10 +1,11 @@
-#include "scpiclient.h"
 #include <QState>
 #include <QDebug>
 #include <QBuffer>
 #include <zeraclientnetbase.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
+#include "resourceviewer.h"
+#include "scpiclient.h"
 
 ScpiClient *ScpiClient::m_pSingletonInstance = 0;
 
@@ -36,14 +37,14 @@ void ScpiClient::setupStateMachine()
     m_pStateIdentified->addTransition(this, SIGNAL(signalOperational()), m_pStateOperational);
     m_pStateOperational->addTransition(this, SIGNAL(signalUpdateModel()), m_pStateIdentified);
     m_pStateOperational->addTransition(this, SIGNAL(signalSendSCPIMessage(QString)), m_pStateSendingCmd);
-    m_pStateSendingCmd->addTransition(this, SIGNAL(signalSCPIResponse(QString,bool)), m_pStateOperational);
+    m_pStateSendingCmd->addTransition(this, SIGNAL(signalSCPIResponse()), m_pStateOperational);
 
     connect(m_pStateInit, SIGNAL(entered()), this, SLOT(onInit()));
     connect(m_pStateConnected, SIGNAL(entered()), this, SLOT(onConnected()));
     connect(m_pStateIdentified, SIGNAL(entered()), this, SLOT(onIdentified()));
     connect(m_pFinalStateDisconnected, SIGNAL(entered()), this, SLOT(onDisconnected()));
 
-    connect(this, SIGNAL(signalSendSCPIMessage(QString)), this, SLOT(sendSCPIMessage(QString)));
+    connect(this, SIGNAL(signalSendSCPIMessage(QString)), this, SLOT(slotSendSCPIMessage(QString)));
 }
 
 ScpiClient *ScpiClient::getInstance()
@@ -61,31 +62,35 @@ void ScpiClient::onInit()
     m_pStateContainer->addTransition(m_pNetClient, SIGNAL(connectionLost()), m_pFinalStateDisconnected);
     m_pStateContainer->addTransition(m_pNetClient, SIGNAL(tcpError(QAbstractSocket::SocketError)), m_pFinalStateDisconnected);
 
+    signalAppendLogString(tr("connecting %1:%2...").arg(m_strIPAddress).arg(m_ui16Port), LogHelper::LOG_MESSAGE);
     m_pNetClient->startNetwork(m_strIPAddress, m_ui16Port);
 }
 
 void ScpiClient::onConnected()
 {
-    qDebug() << "Connected";
+    signalAppendLogString(tr("connection established"), LogHelper::LOG_MESSAGE_OK);
 
+    connect(m_pNetClient, SIGNAL(messageAvailable(QByteArray)), this, SLOT(onMessageReceived(QByteArray)));
+
+    signalAppendLogString(tr("sending identification..."), LogHelper::LOG_MESSAGE);
     ProtobufMessage::NetMessage envelope;
     ProtobufMessage::NetMessage::NetReply* newMessage = envelope.mutable_reply();
     newMessage->set_rtype(ProtobufMessage::NetMessage::NetReply::IDENT);
+    /** @todo make id a setting
+     */
     newMessage->set_body("resource-viewer");
-    connect(m_pNetClient, SIGNAL(messageAvailable(QByteArray)), this, SLOT(onMessageReceived(QByteArray)));
-
     m_pNetClient->sendMessage(&envelope);
 }
 
 void ScpiClient::onIdentified()
 {
-    qDebug() << "Identified";
     sendSCPIMessage(QString("resource:model?"));
+    signalAppendLogString(tr("retrieving SCPI-model..."), LogHelper::LOG_MESSAGE);
 }
 
 void ScpiClient::onDisconnected()
 {
-    qDebug() << "Disconnected" << QObject::sender();
+    signalAppendLogString(tr("connection lost"), LogHelper::LOG_MESSAGE_ERROR);
 
     m_pNetClient->deleteLater();
     signalModelDeleted();
@@ -106,12 +111,11 @@ void ScpiClient::onMessageReceived(QByteArray message)
           {
             if(m_pStateMachine->configuration().contains(m_pStateConnected))
             {
+                signalAppendLogString(tr("identification acknowledged"), LogHelper::LOG_MESSAGE_OK);
                 signalIdentified();
             }
             else if(m_pStateMachine->configuration().contains(m_pStateIdentified))
             {
-                qDebug() << "Model: " << strResponse;
-
                 if(m_pScpiModel != 0)
                 {
                     signalModelDeleted();
@@ -122,14 +126,22 @@ void ScpiClient::onMessageReceived(QByteArray message)
                 QBuffer buff;
                 tmpArr.append(strResponse);
                 buff.setData(tmpArr);
-                m_pScpiModel->importSCPIModelXML(&buff);
-                signalModelAvailable(m_pScpiModel->getSCPIModel());
-                signalOperational();
+                if(m_pScpiModel->importSCPIModelXML(&buff))
+                {
+                    signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);
+                    signalAppendLogString("", LogHelper::LOG_NEWLINE);
+                    signalModelAvailable(m_pScpiModel->getSCPIModel());
+                    signalOperational();
+                }
+                else
+                    signalAppendLogString(tr("invalid model received"), LogHelper::LOG_MESSAGE_ERROR);
             }
             else if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
             {
-                qDebug() << "SCPI answer: " << reply->body().c_str();
-                signalSCPIResponse(strResponse, true);
+                // notify our state machine
+                signalSCPIResponse();
+                // log
+                signalAppendLogString(tr("SCPI in: ") + strResponse, LogHelper::LOG_MESSAGE_OK);
             }
             else
             {
@@ -141,11 +153,24 @@ void ScpiClient::onMessageReceived(QByteArray message)
             break;
           }
         case ProtobufMessage::NetMessage::NetReply::NACK:
+        {
+          if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
+          {
+              // notify our state machine
+              signalSCPIResponse();
+              // log
+              signalAppendLogString(tr("SCPI in (NACK): ") + strResponse, LogHelper::LOG_MESSAGE_ERROR);
+          }
+          break;
+        }
         case ProtobufMessage::NetMessage::NetReply::ERROR:
           {
             if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
             {
-                signalSCPIResponse(strResponse, false);
+                // notify our state machine
+                signalSCPIResponse();
+                // log
+                signalAppendLogString(tr("SCPI in (ERROR): ") + strResponse, LogHelper::LOG_MESSAGE_ERROR);
             }
             break;
           }
@@ -175,4 +200,11 @@ void ScpiClient::sendSCPIMessage(QString strCmd)
     ProtobufMessage::NetMessage::ScpiCommand* newMessage = envelope.mutable_scpi();
     newMessage->set_command(strCmd.toStdString());
     m_pNetClient->sendMessage(&envelope);
+}
+
+
+void ScpiClient::slotSendSCPIMessage(QString strCmd)
+{
+    signalAppendLogString(tr("SCPI out: ") + strCmd, LogHelper::LOG_MESSAGE);
+    sendSCPIMessage(strCmd);
 }
