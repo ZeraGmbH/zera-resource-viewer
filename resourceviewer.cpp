@@ -18,15 +18,19 @@ void ResourceViewerWidget::onSendSCPI()
 
 void ResourceViewerWidget::onTvDoubleClick(QModelIndex modelIndex)
 {
-    QModelIndex runningIndex;
-    QString strSCPICmd;
-    for(runningIndex = modelIndex; runningIndex.isValid(); runningIndex=runningIndex.parent())
+    // only leafs update SCPI command
+    if(!modelIndex.child(0,0).isValid())
     {
-        if(!strSCPICmd.isEmpty())
-            strSCPICmd = ":" + strSCPICmd;
-        strSCPICmd = runningIndex.data().toString() + strSCPICmd;
+        QModelIndex runningIndex;
+        QString strSCPICmd;
+        for(runningIndex = modelIndex; runningIndex.isValid(); runningIndex=runningIndex.parent())
+        {
+            if(!strSCPICmd.isEmpty())
+                strSCPICmd = ":" + strSCPICmd;
+            strSCPICmd = runningIndex.data().toString() + strSCPICmd;
+        }
+        m_pUI->leCmd->setText(strSCPICmd);
     }
-    m_pUI->leCmd->setText(strSCPICmd);
 }
 
 void ResourceViewerWidget::setScpiModel(QStandardItemModel *model)
