@@ -8,16 +8,17 @@
 #include <QString>
 #include "loghelper.h"
 
-namespace Zera
+class ProtoNetPeer;
+class cSCPI;
+class RMProtobufWrapper;
+
+namespace google
 {
-  namespace NetClient
+  namespace protobuf
   {
-    class cClientNetBase;
+    class Message;
   }
 }
-
-// forwards
-class cSCPI;
 
 
 class ScpiClient : public QObject
@@ -113,7 +114,7 @@ private slots:
      * @brief This slot is connected to messageAvailable of ScpiClient::m_pNetClient
      * @param message contains the ProtobufMessage
      */
-    void onMessageReceived(QByteArray message);
+    void onMessageReceived(google::protobuf::Message *message);
 
 
 private:
@@ -188,9 +189,11 @@ private:
     /**
      * @brief Our handler for network I/O. Instance is created onInit() and destroyed onDisconnected().
      */
-    Zera::NetClient::cClientNetBase *m_pNetClient;
+    ProtoNetPeer *m_pNetClient;
 
     cSCPI *m_pScpiModel;
+
+    RMProtobufWrapper *m_defaultWrapper;
 };
 
 

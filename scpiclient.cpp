@@ -1,12 +1,12 @@
 #include <QState>
 #include <QDebug>
 #include <QBuffer>
-#include <zeraclientnetbase.h>
+#include <protonetpeer.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
 #include "resourceviewer.h"
 #include "scpiclient.h"
-
+#include "rmprotobufwrapper.h"
 ScpiClient *ScpiClient::m_pSingletonInstance = 0;
 
 ScpiClient::ScpiClient(QObject *parent) :
@@ -14,7 +14,7 @@ ScpiClient::ScpiClient(QObject *parent) :
 {
     m_pNetClient = 0;
     m_pScpiModel = 0;
-
+    m_defaultWrapper = 0;
     setupStateMachine();
 }
 
@@ -57,20 +57,22 @@ ScpiClient *ScpiClient::getInstance()
 
 void ScpiClient::onInit()
 {
-    m_pNetClient = new Zera::NetClient::cClientNetBase(this);
-    m_pStateInit->addTransition(m_pNetClient, SIGNAL(connected()), m_pStateConnected);
-    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(connectionLost()), m_pFinalStateDisconnected);
-    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(tcpError(QAbstractSocket::SocketError)), m_pFinalStateDisconnected);
+    m_defaultWrapper = new RMProtobufWrapper();
+    m_pNetClient = new ProtoNetPeer(this);
+    m_pNetClient->setWrapper(m_defaultWrapper);
+    m_pStateInit->addTransition(m_pNetClient, SIGNAL(sigConnectionEstablished()), m_pStateConnected);
+    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(sigConnectionClosed()), m_pFinalStateDisconnected);
+    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(sigSocketError(QAbstractSocket::SocketError)), m_pFinalStateDisconnected);
 
     signalAppendLogString(tr("connecting %1:%2...").arg(m_strIPAddress).arg(m_ui16Port), LogHelper::LOG_MESSAGE);
-    m_pNetClient->startNetwork(m_strIPAddress, m_ui16Port);
+    m_pNetClient->startConnection((m_strIPAddress), m_ui16Port);
 }
 
 void ScpiClient::onConnected()
 {
     signalAppendLogString(tr("connection established"), LogHelper::LOG_MESSAGE_OK);
 
-    connect(m_pNetClient, SIGNAL(messageAvailable(QByteArray)), this, SLOT(onMessageReceived(QByteArray)));
+    connect(m_pNetClient, SIGNAL(sigMessageReceived(google::protobuf::Message*)), this, SLOT(onMessageReceived(google::protobuf::Message*)));
 
     signalAppendLogString(tr("sending identification..."), LogHelper::LOG_MESSAGE);
     ProtobufMessage::NetMessage envelope;
@@ -101,12 +103,12 @@ void ScpiClient::onDisconnected()
     }
 }
 
-void ScpiClient::onMessageReceived(QByteArray message)
+void ScpiClient::onMessageReceived(google::protobuf::Message *message)
 {
-    ProtobufMessage::NetMessage protoMessage;
-    if(Zera::NetClient::cClientNetBase::readMessage(&protoMessage, message))
+    ProtobufMessage::NetMessage *protoMessage = static_cast<ProtobufMessage::NetMessage *>(message);
+    if(protoMessage)
     {
-        ProtobufMessage::NetMessage::NetReply *reply = protoMessage.mutable_reply();
+        ProtobufMessage::NetMessage::NetReply *reply = protoMessage->mutable_reply();
         QString strResponse = QString("%1").arg(reply->body().c_str());
         switch(reply->rtype())
         {
