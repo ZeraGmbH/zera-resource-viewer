@@ -1,7 +1,7 @@
 #include <QState>
 #include <QDebug>
 #include <QBuffer>
-#include <protonetpeer.h>
+#include <xiqnetpeer.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
 #include "resourceviewer.h"
@@ -49,8 +49,9 @@ void ScpiClient::setupStateMachine()
 
 ScpiClient *ScpiClient::getInstance()
 {
-    if(m_pSingletonInstance == 0)
+    if(m_pSingletonInstance == 0) {
         m_pSingletonInstance = new ScpiClient();
+    }
     return m_pSingletonInstance;
 }
 
@@ -58,7 +59,7 @@ ScpiClient *ScpiClient::getInstance()
 void ScpiClient::onInit()
 {
     m_defaultWrapper = new RMProtobufWrapper();
-    m_pNetClient = new ProtoNetPeer(this);
+    m_pNetClient = new XiQNetPeer(this);
     m_pNetClient->setWrapper(m_defaultWrapper);
     m_pStateInit->addTransition(m_pNetClient, SIGNAL(sigConnectionEstablished()), m_pStateConnected);
     m_pStateContainer->addTransition(m_pNetClient, SIGNAL(sigConnectionClosed()), m_pFinalStateDisconnected);
@@ -81,7 +82,7 @@ void ScpiClient::onConnected()
     /** @todo make id a setting
      */
     newMessage->set_body("resource-viewer");
-    m_pNetClient->sendMessage(&envelope);
+    m_pNetClient->sendMessage(envelope);
 }
 
 void ScpiClient::onIdentified()
@@ -96,8 +97,7 @@ void ScpiClient::onDisconnected()
 
     m_pNetClient->deleteLater();
     signalModelDeleted();
-    if(m_pScpiModel != 0)
-    {
+    if(m_pScpiModel != 0) {
         delete m_pScpiModel;
         m_pScpiModel = 0;
     }
@@ -106,23 +106,18 @@ void ScpiClient::onDisconnected()
 void ScpiClient::onMessageReceived(google::protobuf::Message *message)
 {
     ProtobufMessage::NetMessage *protoMessage = static_cast<ProtobufMessage::NetMessage *>(message);
-    if(protoMessage)
-    {
+    if(protoMessage) {
         ProtobufMessage::NetMessage::NetReply *reply = protoMessage->mutable_reply();
         QString strResponse = QString("%1").arg(reply->body().c_str());
-        switch(reply->rtype())
-        {
+        switch(reply->rtype()) {
         case ProtobufMessage::NetMessage::NetReply::ACK:
-          {
-            if(m_pStateMachine->configuration().contains(m_pStateConnected))
-            {
+            if(m_pStateMachine->configuration().contains(m_pStateConnected)) {
                 signalAppendLogString(tr("identification acknowledged"), LogHelper::LOG_MESSAGE_OK);
                 signalIdentified();
             }
             else if(m_pStateMachine->configuration().contains(m_pStateIdentified))
             {
-                if(m_pScpiModel != 0)
-                {
+                if(m_pScpiModel != 0) {
                     signalModelDeleted();
                     delete m_pScpiModel;
                     m_pScpiModel = 0;
@@ -132,64 +127,54 @@ void ScpiClient::onMessageReceived(google::protobuf::Message *message)
                 QBuffer buff;
                 tmpArr.append(strResponse);
                 buff.setData(tmpArr);
-                if(m_pScpiModel->importSCPIModelXML(&buff))
-                {
+                if(m_pScpiModel->importSCPIModelXML(&buff)) {
                     signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);
                     signalAppendLogString("", LogHelper::LOG_NEWLINE);
                     signalModelAvailable(m_pScpiModel->getSCPIModel());
                     signalOperational();
                 }
-                else
+                else {
                     signalAppendLogString(tr("invalid model received"), LogHelper::LOG_MESSAGE_ERROR);
+                }
             }
-            else if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
-            {
+            else if(m_pStateMachine->configuration().contains(m_pStateSendingCmd)) {
                 // notify our state machine
                 signalSCPIResponse();
                 // log
                 signalAppendLogString(tr("SCPI in: ") + strResponse, LogHelper::LOG_MESSAGE_OK);
             }
-            else
-            {
+            else {
                 qDebug() << "SCPI answer on unkown state: "
                          << m_pStateMachine->configuration()
                          << "Answer: "
                          << reply->body().c_str();
             }
             break;
-          }
         case ProtobufMessage::NetMessage::NetReply::NACK:
-        {
-          if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
-          {
-              // notify our state machine
-              signalSCPIResponse();
-              // log
-              signalAppendLogString(tr("SCPI in (NACK): ") + strResponse, LogHelper::LOG_MESSAGE_ERROR);
-          }
-          break;
-        }
+            if(m_pStateMachine->configuration().contains(m_pStateSendingCmd)) {
+                // notify our state machine
+                signalSCPIResponse();
+                // log
+                signalAppendLogString(tr("SCPI in (NACK): ") + strResponse, LogHelper::LOG_MESSAGE_ERROR);
+            }
+            break;
         case ProtobufMessage::NetMessage::NetReply::ERROR:
-          {
-            if(m_pStateMachine->configuration().contains(m_pStateSendingCmd))
-            {
+            if(m_pStateMachine->configuration().contains(m_pStateSendingCmd)) {
                 // notify our state machine
                 signalSCPIResponse();
                 // log
                 signalAppendLogString(tr("SCPI in (ERROR): ") + strResponse, LogHelper::LOG_MESSAGE_ERROR);
             }
             break;
-          }
         default:
-          {
             qWarning("Unhandled answer recieved!");
             /// @todo this is the error case
             break;
-          }
         }
     }
-    else
-        qDebug() << "protobuf read message failed";
+    else {
+        qWarning() << "protobuf read message failed";
+    }
 }
 
 void ScpiClient::start(QString strIPAddress, quint16 ui16Port)
@@ -205,7 +190,7 @@ void ScpiClient::sendSCPIMessage(QString strCmd)
     ProtobufMessage::NetMessage envelope;
     ProtobufMessage::NetMessage::ScpiCommand* newMessage = envelope.mutable_scpi();
     newMessage->set_command(strCmd.toStdString());
-    m_pNetClient->sendMessage(&envelope);
+    m_pNetClient->sendMessage(envelope);
 }
 
 

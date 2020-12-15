@@ -14,8 +14,7 @@ int main(int argc, char** argv)
     settingsDialog.setIPAddress(settings.value("IPAddress", "localhost").toString());
     settingsDialog.setPort(settings.value("Port", 6312).toInt());
 
-    if(settingsDialog.exec() == QDialog::Accepted)
-    {
+    if(settingsDialog.exec() == QDialog::Accepted) {
         QString strIPAdress = settingsDialog.getIPAddress();
         quint16 ui16Port = settingsDialog.getPort();
 

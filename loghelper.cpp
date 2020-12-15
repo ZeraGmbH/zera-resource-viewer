@@ -9,8 +9,7 @@ QString LogHelper::formatMessage(QString strMsg, enum enLogTypes logType)
     QTime currentTime = QTime::currentTime();
     strMsg = currentTime.toString("HH:mm:ss.zzz: ") + strMsg;
     // add color / bold
-    switch(logType)
-    {
+    switch(logType) {
     case LOG_MESSAGE_OK:
         strMsg = "<p style=\"color:green\">" + strMsg + "</p>";
         break;

@@ -7,19 +7,18 @@ RMProtobufWrapper::RMProtobufWrapper()
 {
 }
 
-
-google::protobuf::Message *RMProtobufWrapper::byteArrayToProtobuf(QByteArray bA)
+std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtobuf(QByteArray bA)
 {
-  ProtobufMessage::NetMessage *proto = new ProtobufMessage::NetMessage();
-  if(!proto->ParseFromArray(bA, bA.size()))
-  {
-    qCritical() << "Error parsing protobuf:\n" << bA.toBase64();
-    Q_ASSERT(false);
-  }
-  return proto;
+    ProtobufMessage::NetMessage *intermediate = new ProtobufMessage::NetMessage();
+    if(!intermediate->ParseFromArray(bA, bA.size())) {
+        qCritical() << "Error parsing protobuf:\n" << bA.toBase64();
+        Q_ASSERT(false);
+    }
+    std::shared_ptr<google::protobuf::Message> proto {intermediate};
+    return proto;
 }
 
-QByteArray RMProtobufWrapper::protobufToByteArray(google::protobuf::Message *pMessage)
+QByteArray RMProtobufWrapper::protobufToByteArray(const google::protobuf::Message &pMessage)
 {
-  return QByteArray(pMessage->SerializeAsString().c_str(), pMessage->ByteSize());
+    return QByteArray(pMessage.SerializeAsString().c_str(), pMessage.ByteSizeLong());
 }

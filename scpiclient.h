@@ -8,7 +8,7 @@
 #include <QString>
 #include "loghelper.h"
 
-class ProtoNetPeer;
+class XiQNetPeer;
 class cSCPI;
 class RMProtobufWrapper;
 
@@ -189,7 +189,7 @@ private:
     /**
      * @brief Our handler for network I/O. Instance is created onInit() and destroyed onDisconnected().
      */
-    ProtoNetPeer *m_pNetClient;
+    XiQNetPeer *m_pNetClient;
 
     cSCPI *m_pScpiModel;
 
