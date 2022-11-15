@@ -127,10 +127,10 @@ void ScpiClient::onMessageReceived(google::protobuf::Message *message)
                 QBuffer buff;
                 tmpArr.append(strResponse);
                 buff.setData(tmpArr);
-                if(m_pScpiModel->importSCPIModelXML(&buff)) {
+                if(true /*m_pScpiModel->importSCPIModelXML(&buff)*/) {
                     signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);
                     signalAppendLogString("", LogHelper::LOG_NEWLINE);
-                    signalModelAvailable(m_pScpiModel->getSCPIModel());
+                    //signalModelAvailable(m_pScpiModel->getSCPIModel());
                     signalOperational();
                 }
                 else {
