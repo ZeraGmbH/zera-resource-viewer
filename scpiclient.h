@@ -114,7 +114,7 @@ private slots:
      * @brief This slot is connected to messageAvailable of ScpiClient::m_pNetClient
      * @param message contains the ProtobufMessage
      */
-    void onMessageReceived(google::protobuf::Message *message);
+    void onMessageReceived(std::shared_ptr<google::protobuf::Message> message);
 
 
 private:

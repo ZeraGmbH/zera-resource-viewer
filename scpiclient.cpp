@@ -73,7 +73,7 @@ void ScpiClient::onConnected()
 {
     signalAppendLogString(tr("connection established"), LogHelper::LOG_MESSAGE_OK);
 
-    connect(m_pNetClient, SIGNAL(sigMessageReceived(google::protobuf::Message*)), this, SLOT(onMessageReceived(google::protobuf::Message*)));
+    connect(m_pNetClient, &XiQNetPeer::sigMessageReceived, this, &ScpiClient::onMessageReceived);
 
     signalAppendLogString(tr("sending identification..."), LogHelper::LOG_MESSAGE);
     ProtobufMessage::NetMessage envelope;
@@ -103,9 +103,9 @@ void ScpiClient::onDisconnected()
     }
 }
 
-void ScpiClient::onMessageReceived(google::protobuf::Message *message)
+void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> message)
 {
-    ProtobufMessage::NetMessage *protoMessage = static_cast<ProtobufMessage::NetMessage *>(message);
+    std::shared_ptr<ProtobufMessage::NetMessage> protoMessage = std::static_pointer_cast<ProtobufMessage::NetMessage>(message);
     if(protoMessage) {
         ProtobufMessage::NetMessage::NetReply *reply = protoMessage->mutable_reply();
         QString strResponse = QString("%1").arg(reply->body().c_str());
