@@ -6,9 +6,9 @@ ResourceViewerWidget::ResourceViewerWidget(QWidget *parent) :
     QWidget(parent), m_pUI(new Ui::ScpiViewer)
 {
     m_pUI->setupUi(this);
-    connect(m_pUI->pbUpdate, SIGNAL(clicked()), this, SIGNAL(forwardUpdateResources()));
-    connect(m_pUI->pbSend, SIGNAL(clicked()), this, SLOT(onSendSCPI()));
-    connect(m_pUI->tvScpiNodeViewer, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onTvDoubleClick(QModelIndex)));
+    connect(m_pUI->pbUpdate, &QPushButton::clicked, this, &ResourceViewerWidget::forwardUpdateResources);
+    connect(m_pUI->pbSend, &QPushButton::clicked, this, &ResourceViewerWidget::onSendSCPI);
+    connect(m_pUI->tvScpiNodeViewer, &QTreeView::doubleClicked, this, &ResourceViewerWidget::onTvDoubleClick);
 }
 
 void ResourceViewerWidget::onSendSCPI()

@@ -39,12 +39,12 @@ void ScpiClient::setupStateMachine()
     m_pStateOperational->addTransition(this, SIGNAL(signalSendSCPIMessage(QString)), m_pStateSendingCmd);
     m_pStateSendingCmd->addTransition(this, SIGNAL(signalSCPIResponse()), m_pStateOperational);
 
-    connect(m_pStateInit, SIGNAL(entered()), this, SLOT(onInit()));
-    connect(m_pStateConnected, SIGNAL(entered()), this, SLOT(onConnected()));
-    connect(m_pStateIdentified, SIGNAL(entered()), this, SLOT(onIdentified()));
-    connect(m_pFinalStateDisconnected, SIGNAL(entered()), this, SLOT(onDisconnected()));
+    connect(m_pStateInit, &QState::entered, this, &ScpiClient::onInit);
+    connect(m_pStateConnected, &QState::entered, this, &ScpiClient::onConnected);
+    connect(m_pStateIdentified, &QState::entered, this, &ScpiClient::onIdentified);
+    connect(m_pFinalStateDisconnected, &QState::entered, this, &ScpiClient::onDisconnected);
 
-    connect(this, SIGNAL(signalSendSCPIMessage(QString)), this, SLOT(slotSendSCPIMessage(QString)));
+    connect(this, &ScpiClient::signalSendSCPIMessage, this, &ScpiClient::slotSendSCPIMessage);
 }
 
 ScpiClient *ScpiClient::getInstance()
@@ -125,7 +125,7 @@ void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> me
                 m_pScpiModel = new cSCPI("SCPIClient");
                 QByteArray tmpArr;
                 QBuffer buff;
-                tmpArr.append(strResponse);
+                tmpArr.append(strResponse.toUtf8());
                 buff.setData(tmpArr);
                 if(true){ //m_pScpiModel->importSCPIModelXML(&buff)) {
                     emit signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);

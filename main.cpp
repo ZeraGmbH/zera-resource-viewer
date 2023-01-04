@@ -25,10 +25,10 @@ int main(int argc, char** argv)
         ScpiClient* client = ScpiClient::getInstance();
 
         QObject::connect(client, &ScpiClient::signalModelAvailable, &w, &ResourceViewerWidget::setScpiModel);
-        QObject::connect(client, SIGNAL(signalModelDeleted()), &w, SLOT(unsetScpiModel()), Qt::DirectConnection);
-        QObject::connect(&w, SIGNAL(forwardUpdateResources()), client, SIGNAL(signalUpdateModel()));
-        QObject::connect(&w, SIGNAL(forwardSendSCPI(QString)), client, SIGNAL(signalSendSCPIMessage(QString)));
-        QObject::connect(client, SIGNAL(signalAppendLogString(QString, LogHelper::enLogTypes)), &w, SLOT(AppendLogString(QString, LogHelper::enLogTypes)));
+        QObject::connect(client, &ScpiClient::signalModelDeleted, &w, &ResourceViewerWidget::unsetScpiModel, Qt::DirectConnection);
+        QObject::connect(client, &ScpiClient::signalAppendLogString, &w, &ResourceViewerWidget::AppendLogString);
+        QObject::connect(&w, &ResourceViewerWidget::forwardUpdateResources, client, &ScpiClient::signalUpdateModel);
+        QObject::connect(&w, &ResourceViewerWidget::forwardSendSCPI, client, &ScpiClient::signalSendSCPIMessage);
 
         w.show();
         client->start(strIPAdress, ui16Port);
