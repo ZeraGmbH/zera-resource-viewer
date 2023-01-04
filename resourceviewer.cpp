@@ -13,7 +13,7 @@ ResourceViewerWidget::ResourceViewerWidget(QWidget *parent) :
 
 void ResourceViewerWidget::onSendSCPI()
 {
-    forwardSendSCPI(m_pUI->leCmd->text());
+    emit forwardSendSCPI(m_pUI->leCmd->text());
 }
 
 void ResourceViewerWidget::onTvDoubleClick(QModelIndex modelIndex)

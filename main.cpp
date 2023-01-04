@@ -24,7 +24,7 @@ int main(int argc, char** argv)
         ResourceViewerWidget w;
         ScpiClient* client = ScpiClient::getInstance();
 
-        QObject::connect(client, SIGNAL(signalModelAvailable(QStandardItemModel*)), &w, SLOT(setScpiModel(QStandardItemModel*)));
+        QObject::connect(client, &ScpiClient::signalModelAvailable, &w, &ResourceViewerWidget::setScpiModel);
         QObject::connect(client, SIGNAL(signalModelDeleted()), &w, SLOT(unsetScpiModel()), Qt::DirectConnection);
         QObject::connect(&w, SIGNAL(forwardUpdateResources()), client, SIGNAL(signalUpdateModel()));
         QObject::connect(&w, SIGNAL(forwardSendSCPI(QString)), client, SIGNAL(signalSendSCPIMessage(QString)));
