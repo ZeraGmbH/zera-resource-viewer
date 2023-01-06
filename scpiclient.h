@@ -6,6 +6,8 @@
 #include <QStateMachine>
 #include <QFinalState>
 #include <QString>
+#include <QDomNode>
+#include "scpinode.h"
 #include "loghelper.h"
 
 class XiQNetPeer;
@@ -20,6 +22,11 @@ namespace google
   }
 }
 
+const QString scpimodelDocName = "SCPIModel";
+const QString scpimodelrootName = "MODELLIST";
+const QString scpimodeldeviceTag =  "DEVICE";
+const QString scpimodelsTag = "MODELS";
+const QString scpinodeAttributeName = "Type";
 
 class ScpiClient : public QObject
 {
@@ -116,7 +123,6 @@ private slots:
      */
     void onMessageReceived(std::shared_ptr<google::protobuf::Message> message);
 
-
 private:
     /**
      * @brief private constructor to avoid multiple instances
@@ -132,6 +138,16 @@ private:
      * @param strCmd
      */
     void sendSCPIMessage(QString strCmd);
+
+    void genSCPICmd(const QStringList&  parentnodeNames, cSCPINode* pSCPINode);
+
+    quint8 getNodeType(const QString& sAttr);
+
+    bool getcommandInfo(QDomNode rootNode, quint32 nlevel);
+
+    void clearSCPICmdList();
+
+    bool importSCPIModelXML(QIODevice *ioDevice);
 
     /**
      * @brief Our one and only instance.

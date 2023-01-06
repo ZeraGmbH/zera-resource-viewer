@@ -1,6 +1,9 @@
 #include <QState>
 #include <QDebug>
 #include <QBuffer>
+#include <QDomDocument>
+#include <QDomDocumentType>
+#include <QDomElement>
 #include <xiqnetpeer.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
@@ -127,10 +130,10 @@ void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> me
                 QBuffer buff;
                 tmpArr.append(strResponse.toUtf8());
                 buff.setData(tmpArr);
-                if(true){ //m_pScpiModel->importSCPIModelXML(&buff)) {
+                if(importSCPIModelXML(&buff)) {
                     emit signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);
                     emit signalAppendLogString("", LogHelper::LOG_NEWLINE);
-                    //signalModelAvailable(m_pScpiModel->getSCPIModel());
+                    emit signalModelAvailable(m_pScpiModel->getSCPIModel());
                     emit signalOperational();
                 }
                 else {
@@ -198,4 +201,135 @@ void ScpiClient::slotSendSCPIMessage(QString strCmd)
 {
     emit signalAppendLogString(tr("SCPI out: ") + strCmd, LogHelper::LOG_MESSAGE);
     sendSCPIMessage(strCmd);
+}
+
+void ScpiClient::genSCPICmd(const QStringList&  parentnodeNames, cSCPINode* pSCPINode)
+{
+    QStringList::const_iterator it;
+    QStandardItem *parentItem;
+    QStandardItem *childItem;
+    QModelIndex childModelIndex;
+
+    parentItem = m_pScpiModel->getSCPIModel()->invisibleRootItem();
+
+    for (it = parentnodeNames.begin(); it != parentnodeNames.end(); ++it)
+    {
+            childItem = 0;
+            quint32 nrows = parentItem->rowCount();
+
+            if (nrows > 0)
+                for (quint32 i = 0; i < nrows; i++)
+                {
+                    childItem = parentItem->child(i);
+                    if (childItem->data(Qt::DisplayRole) == *it)
+                        break;
+                    else
+                        childItem = 0;
+                }
+
+            if (!childItem)
+            {
+                childItem  = new cSCPINode(*it, SCPI::isNode, 0);
+                parentItem->appendRow(childItem);
+            }
+
+            parentItem = childItem;
+    }
+
+    parentItem->appendRow(pSCPINode);
+}
+
+quint8 ScpiClient::getNodeType(const QString& sAttr)
+{
+    int t = SCPI::isNode;
+    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::Query]) )
+        t += SCPI::isQuery;
+    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::CmdwP]) )
+        t += SCPI::isCmdwP;
+    else
+    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::Cmd]) )
+        t += SCPI::isCmd;
+
+    return t;
+}
+
+bool ScpiClient::getcommandInfo( QDomNode rootNode, quint32 nlevel )
+{
+    static QStringList nodeNames;
+    QDomNodeList nl = rootNode.childNodes();
+
+    quint32 n = nl.length();
+    if ( n > 0)
+    {
+        quint32 i;
+        for (i=0; i<n ; i++)
+        {
+            if (nlevel == 0)
+                nodeNames.clear(); // for each root cmd we clear the local node name list
+            QDomNode node2 = nl.item(i);
+            QDomElement e = node2.toElement();
+            QString s = e.tagName();
+            if (!node2.hasChildNodes())
+            {
+                quint8 t = getNodeType(e.attribute(scpinodeAttributeName));
+                cSCPINode *pSCPINode = new cSCPINode (s , t, NULL); // we have no corresponding cSCPIObject -> NULL
+                genSCPICmd(nodeNames, pSCPINode);
+            }
+            else
+            {
+                nodeNames.append(s); // we add each node name to the list
+                getcommandInfo(node2, ++nlevel); // we look for further levels
+                --nlevel;
+            }
+        }
+    }
+
+    if (nlevel > 0)
+        nodeNames.pop_back();
+
+    return true;
+}
+
+void ScpiClient::clearSCPICmdList()
+{
+    QList<QStandardItem *> itemList;
+
+    itemList = m_pScpiModel->getSCPIModel()->takeColumn (0);
+    for (qint32 i = 0; i < itemList.size(); ++i)
+        delete itemList.value(i);
+}
+
+bool ScpiClient::importSCPIModelXML(QIODevice *ioDevice)
+{
+    clearSCPICmdList();
+
+    QDomDocument modelDoc;
+    if ( !modelDoc.setContent(ioDevice) )
+        return false;
+
+    QDomDocumentType TheDocType = modelDoc.doctype ();
+    if (TheDocType.name() != scpimodelDocName)
+        return false;
+
+    QDomElement rootElem = modelDoc.documentElement();
+    if (rootElem.tagName() != scpimodelrootName)
+        return false;
+
+    QDomNodeList nl=rootElem.childNodes();
+
+    for (int i=0; i<nl.length() ; i++)
+    {
+        QDomNode n = nl.item(i);
+        QDomElement e=n.toElement();
+
+        if (e.tagName() == scpimodelsTag) // here the scpi models start
+        {
+            m_pScpiModel->getSCPIModel()->clear(); // we clear the existing command list
+            if (!getcommandInfo( n, 0))
+                return false;
+        }
+
+    }
+
+    return true;
 }
