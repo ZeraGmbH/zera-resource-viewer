@@ -56,6 +56,7 @@ add_executable(zera-resourcemanager
     ${SOURCES}
     ${HEADER}
     ${RESOURCES}
+    ${FORMS}
     )
 
 # link dependencies
