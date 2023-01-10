@@ -125,7 +125,7 @@ void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> me
                     delete m_pScpiModel;
                     m_pScpiModel = 0;
                 }
-                m_pScpiModel = new cSCPI("SCPIClient");
+                m_pScpiModel = new QStandardItemModel;
                 QByteArray tmpArr;
                 QBuffer buff;
                 tmpArr.append(strResponse.toUtf8());
@@ -133,7 +133,7 @@ void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> me
                 if(importSCPIModelXML(&buff)) {
                     emit signalAppendLogString(tr("valid model received"), LogHelper::LOG_MESSAGE_OK);
                     emit signalAppendLogString("", LogHelper::LOG_NEWLINE);
-                    emit signalModelAvailable(m_pScpiModel->getSCPIModel());
+                    emit signalModelAvailable(m_pScpiModel);
                     emit signalOperational();
                 }
                 else {
@@ -210,7 +210,7 @@ void ScpiClient::genSCPICmd(const QStringList&  parentnodeNames, cSCPINode* pSCP
     QStandardItem *childItem;
     QModelIndex childModelIndex;
 
-    parentItem = m_pScpiModel->getSCPIModel()->invisibleRootItem();
+    parentItem = m_pScpiModel->invisibleRootItem();
 
     for (it = parentnodeNames.begin(); it != parentnodeNames.end(); ++it)
     {
@@ -242,12 +242,12 @@ void ScpiClient::genSCPICmd(const QStringList&  parentnodeNames, cSCPINode* pSCP
 quint8 ScpiClient::getNodeType(const QString& sAttr)
 {
     int t = SCPI::isNode;
-    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::Query]) )
+    if ( sAttr.contains(scpiNodeType[SCPI::Query]) )
         t += SCPI::isQuery;
-    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::CmdwP]) )
+    if ( sAttr.contains(scpiNodeType[SCPI::CmdwP]) )
         t += SCPI::isCmdwP;
     else
-    if ( sAttr.contains(SCPI::scpiNodeType[SCPI::Cmd]) )
+    if ( sAttr.contains(scpiNodeType[SCPI::Cmd]) )
         t += SCPI::isCmd;
 
     return t;
@@ -294,7 +294,7 @@ void ScpiClient::clearSCPICmdList()
 {
     QList<QStandardItem *> itemList;
 
-    itemList = m_pScpiModel->getSCPIModel()->takeColumn (0);
+    itemList = m_pScpiModel->takeColumn (0);
     for (qint32 i = 0; i < itemList.size(); ++i)
         delete itemList.value(i);
 }
@@ -324,7 +324,7 @@ bool ScpiClient::importSCPIModelXML(QIODevice *ioDevice)
 
         if (e.tagName() == scpimodelsTag) // here the scpi models start
         {
-            m_pScpiModel->getSCPIModel()->clear(); // we clear the existing command list
+            m_pScpiModel->clear(); // we clear the existing command list
             if (!getcommandInfo( n, 0))
                 return false;
         }

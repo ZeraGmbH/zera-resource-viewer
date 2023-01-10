@@ -207,7 +207,7 @@ private:
      */
     XiQNetPeer *m_pNetClient;
 
-    cSCPI *m_pScpiModel;
+    QStandardItemModel *m_pScpiModel;
 
     RMProtobufWrapper *m_defaultWrapper;
 };
