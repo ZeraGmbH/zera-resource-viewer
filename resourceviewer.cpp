@@ -7,7 +7,7 @@ ResourceViewerWidget::ResourceViewerWidget(QWidget *parent) :
 {
     m_pUI->setupUi(this);
     connect(m_pUI->pbUpdate, &QPushButton::clicked, this, &ResourceViewerWidget::forwardUpdateResources);
-    connect(m_pUI->pbSend, &QPushButton::clicked, this, &ResourceViewerWidget::onSendSCPI);
+    connect(m_pUI->pbSendCmd, &QPushButton::clicked, this, &ResourceViewerWidget::onSendSCPI);
     connect(m_pUI->tvScpiNodeViewer, &QTreeView::doubleClicked, this, &ResourceViewerWidget::onTvDoubleClick);
 }
 
