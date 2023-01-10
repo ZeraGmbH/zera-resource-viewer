@@ -28,28 +28,17 @@ find_package(xiqnet REQUIRED)
 find_package(zeraprotobuf REQUIRED)
 find_package(SCPI REQUIRED)
 
-# all type of sources
-set(FORMS
-    ${PROJECT_SOURCE_DIR}/resource-viewer.ui
-    ${PROJECT_SOURCE_DIR}/settingsdialog.ui
-)
-
-set(SOURCES
-    ${PROJECT_SOURCE_DIR}/loghelper.cpp
-    ${PROJECT_SOURCE_DIR}/main.cpp
-    ${PROJECT_SOURCE_DIR}/resourceviewer.cpp
-    ${PROJECT_SOURCE_DIR}/rmprotobufwrapper.cpp
-    ${PROJECT_SOURCE_DIR}/scpiclient.cpp
-    ${PROJECT_SOURCE_DIR}/settingsdialog.cpp
+file(GLOB FORMS
+    ${PROJECT_SOURCE_DIR}/.ui
     )
 
-set(HEADER
-    ${PROJECT_SOURCE_DIR}/loghelper.h
-    ${PROJECT_SOURCE_DIR}/resourceviewer.h
-    ${PROJECT_SOURCE_DIR}/rmprotobufwrapper.h
-    ${PROJECT_SOURCE_DIR}/scpiclient.h
-    ${PROJECT_SOURCE_DIR}/settingsdialog.h
-)
+file(GLOB SOURCES
+    ${PROJECT_SOURCE_DIR}/*.cpp
+    )
+
+file(GLOB HEADER
+    ${PROJECT_SOURCE_DIR}/*.h
+    )
 
 # create executable
 add_executable(zera-resourcemanager
