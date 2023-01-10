@@ -6,10 +6,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(resman_VERSION_MAJOR "0")
-set(resman_VERSION_MINOR "10")
-set(resman_VERSION_PATCH "0")
-set(PROJECT_VERSION "${resman_VERSION_MAJOR}.${resman_VERSION_MINOR}.${resman_VERSION_PATCH}")
+set(resource_viewer_VERSION_MAJOR "0")
+set(resource_viewer_VERSION_MINOR "10")
+set(resource_viewer_VERSION_PATCH "0")
+set(PROJECT_VERSION "${resource_viewer_VERSION_MAJOR}.${resource_viewer_VERSION_MINOR}.${resource_viewer_VERSION_PATCH}")
 
 include(FeatureSummary)
 include(GNUInstallDirs)
@@ -32,14 +32,14 @@ file(GLOB HEADER
     ${PROJECT_SOURCE_DIR}/*.h
     )
 
-add_executable(zera-resourcemanager
+add_executable(zera-resource-viewer
     ${SOURCES}
     ${HEADER}
     ${RESOURCES}
     ${FORMS}
     )
 
-target_link_libraries(zera-resourcemanager
+target_link_libraries(zera-resource-viewer
     PUBLIC
     Qt5::Core
     Qt5::Gui
@@ -51,6 +51,6 @@ target_link_libraries(zera-resourcemanager
     Zera::SCPI
     )
 
-install(TARGETS zera-resourcemanager
+install(TARGETS zera-resource-viewer
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
