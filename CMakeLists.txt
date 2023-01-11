@@ -21,7 +21,7 @@ find_package(zeraprotobuf REQUIRED)
 find_package(SCPI REQUIRED)
 
 file(GLOB FORMS
-    ${PROJECT_SOURCE_DIR}/.ui
+    ${PROJECT_SOURCE_DIR}/*.ui
     )
 
 file(GLOB SOURCES
