@@ -7,13 +7,19 @@ ResourceViewerWidget::ResourceViewerWidget(QWidget *parent) :
 {
     m_pUI->setupUi(this);
     connect(m_pUI->pbUpdate, &QPushButton::clicked, this, &ResourceViewerWidget::forwardUpdateResources);
-    connect(m_pUI->pbSendCmd, &QPushButton::clicked, this, &ResourceViewerWidget::onSendSCPI);
+    connect(m_pUI->pbSendCmd, &QPushButton::clicked, this, &ResourceViewerWidget::onSendScpiCmd);
+    connect(m_pUI->pbSendQuery, &QPushButton::clicked, this, &ResourceViewerWidget::onSendScpiQuery);
     connect(m_pUI->tvScpiNodeViewer, &QTreeView::doubleClicked, this, &ResourceViewerWidget::onTvDoubleClick);
 }
 
-void ResourceViewerWidget::onSendSCPI()
+void ResourceViewerWidget::onSendScpiCmd()
 {
     emit forwardSendSCPI(m_pUI->leCmd->text());
+}
+
+void ResourceViewerWidget::onSendScpiQuery()
+{
+    emit forwardSendSCPI(m_pUI->leCmd->text() + "?");
 }
 
 void ResourceViewerWidget::onTvDoubleClick(QModelIndex modelIndex)

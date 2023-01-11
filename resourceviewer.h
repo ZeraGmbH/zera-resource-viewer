@@ -45,7 +45,8 @@ private slots:
     /**
      * @brief Handler for "Send" button sending command found in ResourceViewerWidget::m_pUI->leCmd
      */
-    void onSendSCPI();
+    void onSendScpiCmd();
+    void onSendScpiQuery();
 
     /**
      * @brief In case the selected item is a leaf, the SCPI-command for the item is created
