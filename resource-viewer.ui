@@ -64,8 +64,14 @@
        </item>
        <item row="1" column="0" colspan="4">
         <widget class="QTreeView" name="tvScpiNodeViewer">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Displays the resource-model tree.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When a command (i.e. a lead of the tree) is selected, following shortcuts can be executed:&lt;br/&gt;* &lt;span style=&quot; font-style:italic;&quot;&gt;Enter&lt;/span&gt;: Send command.&lt;br/&gt;* &lt;span style=&quot; font-style:italic;&quot;&gt;Shift+Enter&lt;/span&gt;: Send query.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="animated">
+          <bool>true</bool>
          </property>
          <attribute name="headerVisible">
           <bool>false</bool>
@@ -104,6 +110,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pbSendCmd">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Executes the command line as it is.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If it is already a query (with &amp;quot;?&amp;quot; at its end) it will get executed as such.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Send Cmd</string>
        </property>
@@ -114,8 +123,14 @@
      </item>
      <item>
       <widget class="QPushButton" name="pbSendQuery">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Executes the command line as query.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Appends a &amp;quot;?&amp;quot; to the command and therefore executes it as a query.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Send Query</string>
+       </property>
+       <property name="shortcut">
+        <string>Shift+Return</string>
        </property>
       </widget>
      </item>
