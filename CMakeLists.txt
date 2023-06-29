@@ -15,9 +15,7 @@ include(FeatureSummary)
 include(GNUInstallDirs)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network CONFIG REQUIRED)
-
-find_package(xiqnet REQUIRED)
-find_package(zeraprotobuf REQUIRED)
+find_package(VeinFramework REQUIRED)
 find_package(SCPI REQUIRED)
 
 file(GLOB FORMS
@@ -46,8 +44,8 @@ target_link_libraries(zera-resource-viewer
     Qt5::Widgets
     Qt5::Network
     PRIVATE
-    VeinMeta::xiqnet
-    VeinMeta::zeraprotobuf
+    Zera::xiqnet
+    Zera::zeraprotobuf
     Zera::SCPI
     )
 
