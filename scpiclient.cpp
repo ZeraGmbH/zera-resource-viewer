@@ -35,12 +35,12 @@ void ScpiClient::setupStateMachine()
     m_pStateMachine->setInitialState(m_pStateContainer);
     m_pStateContainer->setInitialState(m_pStateInit);
 
-    m_pStateContainer->addTransition(this, SIGNAL(signalInit()), m_pStateInit);
-    m_pStateConnected->addTransition(this, SIGNAL(signalIdentified()), m_pStateIdentified);
-    m_pStateIdentified->addTransition(this, SIGNAL(signalOperational()), m_pStateOperational);
-    m_pStateOperational->addTransition(this, SIGNAL(signalUpdateModel()), m_pStateIdentified);
-    m_pStateOperational->addTransition(this, SIGNAL(signalSendSCPIMessage(QString)), m_pStateSendingCmd);
-    m_pStateSendingCmd->addTransition(this, SIGNAL(signalSCPIResponse()), m_pStateOperational);
+    m_pStateContainer->addTransition(this, &ScpiClient::signalInit, m_pStateInit);
+    m_pStateConnected->addTransition(this, &ScpiClient::signalIdentified, m_pStateIdentified);
+    m_pStateIdentified->addTransition(this, &ScpiClient::signalOperational, m_pStateOperational);
+    m_pStateOperational->addTransition(this, &ScpiClient::signalUpdateModel, m_pStateIdentified);
+    m_pStateOperational->addTransition(this, &ScpiClient::signalSendSCPIMessage, m_pStateSendingCmd);
+    m_pStateSendingCmd->addTransition(this, &ScpiClient::signalSCPIResponse, m_pStateOperational);
 
     connect(m_pStateInit, &QState::entered, this, &ScpiClient::onInit);
     connect(m_pStateConnected, &QState::entered, this, &ScpiClient::onConnected);
@@ -63,10 +63,9 @@ void ScpiClient::onInit()
 {
     m_defaultWrapper = new RMProtobufWrapper();
     m_pNetClient = new XiQNetPeer(this);
-    m_pNetClient->setWrapper(m_defaultWrapper);
-    m_pStateInit->addTransition(m_pNetClient, SIGNAL(sigConnectionEstablished()), m_pStateConnected);
-    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(sigConnectionClosed()), m_pFinalStateDisconnected);
-    m_pStateContainer->addTransition(m_pNetClient, SIGNAL(sigSocketError(QAbstractSocket::SocketError)), m_pFinalStateDisconnected);
+    m_pStateInit->addTransition(m_pNetClient, &XiQNetPeer::sigConnectionEstablished, m_pStateConnected);
+    m_pStateContainer->addTransition(m_pNetClient, &XiQNetPeer::sigConnectionClosed, m_pFinalStateDisconnected);
+    m_pStateContainer->addTransition(m_pNetClient, &XiQNetPeer::sigSocketError, m_pFinalStateDisconnected);
 
     emit signalAppendLogString(tr("connecting %1:%2...").arg(m_strIPAddress).arg(m_ui16Port), LogHelper::LOG_MESSAGE);
     m_pNetClient->startConnection((m_strIPAddress), m_ui16Port);
@@ -85,13 +84,19 @@ void ScpiClient::onConnected()
     /** @todo make id a setting
      */
     newMessage->set_body("resource-viewer");
-    m_pNetClient->sendMessage(envelope);
+    m_pNetClient->sendMessage(m_defaultWrapper->protobufToByteArray(envelope));
 }
 
 void ScpiClient::onIdentified()
 {
     sendSCPIMessage(QString("resource:model?"));
     emit signalAppendLogString(tr("retrieving SCPI-model..."), LogHelper::LOG_MESSAGE);
+}
+
+void ScpiClient::onMessageReceived(XiQNetPeer *peer, QByteArray message)
+{
+    Q_UNUSED(peer)
+    handleMessageReceived(m_defaultWrapper->byteArrayToProtobuf(message));
 }
 
 void ScpiClient::onDisconnected()
@@ -106,7 +111,8 @@ void ScpiClient::onDisconnected()
     }
 }
 
-void ScpiClient::onMessageReceived(std::shared_ptr<google::protobuf::Message> message)
+
+void ScpiClient::handleMessageReceived(std::shared_ptr<google::protobuf::Message> message)
 {
     std::shared_ptr<ProtobufMessage::NetMessage> protoMessage = std::static_pointer_cast<ProtobufMessage::NetMessage>(message);
     if(protoMessage) {
@@ -193,7 +199,7 @@ void ScpiClient::sendSCPIMessage(QString strCmd)
     ProtobufMessage::NetMessage envelope;
     ProtobufMessage::NetMessage::ScpiCommand* newMessage = envelope.mutable_scpi();
     newMessage->set_command(strCmd.toStdString());
-    m_pNetClient->sendMessage(envelope);
+    m_pNetClient->sendMessage(m_defaultWrapper->protobufToByteArray(envelope));
 }
 
 
