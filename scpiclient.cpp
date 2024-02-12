@@ -4,7 +4,7 @@
 #include <QDomDocument>
 #include <QDomDocumentType>
 #include <QDomElement>
-#include <xiqnetpeer.h>
+#include <vtcp_peer.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
 #include "resourceviewer.h"
@@ -62,10 +62,10 @@ ScpiClient *ScpiClient::getInstance()
 void ScpiClient::onInit()
 {
     m_defaultWrapper = new RMProtobufWrapper();
-    m_pNetClient = new XiQNetPeer(this);
-    m_pStateInit->addTransition(m_pNetClient, &XiQNetPeer::sigConnectionEstablished, m_pStateConnected);
-    m_pStateContainer->addTransition(m_pNetClient, &XiQNetPeer::sigConnectionClosed, m_pFinalStateDisconnected);
-    m_pStateContainer->addTransition(m_pNetClient, &XiQNetPeer::sigSocketError, m_pFinalStateDisconnected);
+    m_pNetClient = new VeinTcp::TcpPeer(this);
+    m_pStateInit->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionEstablished, m_pStateConnected);
+    m_pStateContainer->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionClosed, m_pFinalStateDisconnected);
+    m_pStateContainer->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigSocketError, m_pFinalStateDisconnected);
 
     emit signalAppendLogString(tr("connecting %1:%2...").arg(m_strIPAddress).arg(m_ui16Port), LogHelper::LOG_MESSAGE);
     m_pNetClient->startConnection((m_strIPAddress), m_ui16Port);
@@ -75,7 +75,7 @@ void ScpiClient::onConnected()
 {
     emit signalAppendLogString(tr("connection established"), LogHelper::LOG_MESSAGE_OK);
 
-    connect(m_pNetClient, &XiQNetPeer::sigMessageReceived, this, &ScpiClient::onMessageReceived);
+    connect(m_pNetClient, &VeinTcp::TcpPeer::sigMessageReceived, this, &ScpiClient::onMessageReceived);
 
     emit signalAppendLogString(tr("sending identification..."), LogHelper::LOG_MESSAGE);
     ProtobufMessage::NetMessage envelope;
@@ -93,7 +93,7 @@ void ScpiClient::onIdentified()
     emit signalAppendLogString(tr("retrieving SCPI-model..."), LogHelper::LOG_MESSAGE);
 }
 
-void ScpiClient::onMessageReceived(XiQNetPeer *peer, QByteArray message)
+void ScpiClient::onMessageReceived(VeinTcp::TcpPeer *peer, QByteArray message)
 {
     Q_UNUSED(peer)
     handleMessageReceived(m_defaultWrapper->byteArrayToProtobuf(message));

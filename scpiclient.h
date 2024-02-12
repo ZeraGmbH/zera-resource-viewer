@@ -1,16 +1,16 @@
 #ifndef SCPICLIENT_H
 #define SCPICLIENT_H
 
+#include "scpinode.h"
+#include "loghelper.h"
+#include <vtcp_peer.h>
 #include <QObject>
 #include <QStandardItemModel>
 #include <QStateMachine>
 #include <QFinalState>
 #include <QString>
 #include <QDomNode>
-#include "scpinode.h"
-#include "loghelper.h"
 
-class XiQNetPeer;
 class cSCPI;
 class RMProtobufWrapper;
 
@@ -52,7 +52,7 @@ private slots:
     void onInit();
     void onConnected();
     void onIdentified();
-    void onMessageReceived(XiQNetPeer *peer, QByteArray message);
+    void onMessageReceived(VeinTcp::TcpPeer *peer, QByteArray message);
     void onDisconnected();
 
 private:
@@ -78,7 +78,7 @@ private:
     QState *m_pStateOperational;
     QState *m_pStateSendingCmd;
     QFinalState *m_pFinalStateDisconnected;
-    XiQNetPeer *m_pNetClient;
+    VeinTcp::TcpPeer *m_pNetClient;
     QStandardItemModel *m_pScpiModel;
     RMProtobufWrapper *m_defaultWrapper;
 };
