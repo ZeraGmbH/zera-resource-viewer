@@ -7,9 +7,10 @@
 #include <vtcp_peer.h>
 #include <netmessages.pb.h>
 #include <scpi.h>
-#include "resourceviewer.h"
 #include "scpiclient.h"
 #include "rmprotobufwrapper.h"
+#include <tcpnetworkfactory.h>
+
 ScpiClient *ScpiClient::m_pSingletonInstance = 0;
 
 ScpiClient::ScpiClient(QObject *parent) :
@@ -62,7 +63,7 @@ ScpiClient *ScpiClient::getInstance()
 void ScpiClient::onInit()
 {
     m_defaultWrapper = new RMProtobufWrapper();
-    m_pNetClient = new VeinTcp::TcpPeer(this);
+    m_pNetClient = new VeinTcp::TcpPeer(VeinTcp::TcpNetworkFactory::create(), this);
     m_pStateInit->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionEstablished, m_pStateConnected);
     m_pStateContainer->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionClosed, m_pFinalStateDisconnected);
     m_pStateContainer->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigSocketError, m_pFinalStateDisconnected);
@@ -214,7 +215,6 @@ void ScpiClient::genSCPICmd(const QStringList&  parentnodeNames, cSCPINode* pSCP
     QStringList::const_iterator it;
     QStandardItem *parentItem;
     QStandardItem *childItem;
-    QModelIndex childModelIndex;
 
     parentItem = m_pScpiModel->invisibleRootItem();
 
