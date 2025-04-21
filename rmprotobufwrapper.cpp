@@ -7,18 +7,18 @@ RMProtobufWrapper::RMProtobufWrapper()
 {
 }
 
-std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtobuf(QByteArray bA)
+std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtobuf(const QByteArray &byteArray)
 {
     ProtobufMessage::NetMessage *intermediate = new ProtobufMessage::NetMessage();
-    if(!intermediate->ParseFromArray(bA, bA.size())) {
-        qCritical() << "Error parsing protobuf:\n" << bA.toBase64();
+    if(!intermediate->ParseFromArray(byteArray, byteArray.size())) {
+        qCritical() << "Error parsing protobuf:\n" << byteArray.toBase64();
         Q_ASSERT(false);
     }
     std::shared_ptr<google::protobuf::Message> proto {intermediate};
     return proto;
 }
 
-QByteArray RMProtobufWrapper::protobufToByteArray(const google::protobuf::Message &pMessage)
+QByteArray RMProtobufWrapper::protobufToByteArray(const google::protobuf::Message &protobufMessage)
 {
-    return QByteArray(pMessage.SerializeAsString().c_str(), pMessage.ByteSizeLong());
+    return QByteArray(protobufMessage.SerializeAsString().c_str(), protobufMessage.ByteSizeLong());
 }
