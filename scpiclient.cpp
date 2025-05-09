@@ -278,7 +278,7 @@ bool ScpiClient::getcommandInfo( QDomNode rootNode, quint32 nlevel )
             if (!node2.hasChildNodes())
             {
                 quint8 t = getNodeType(e.attribute(scpinodeAttributeName));
-                cSCPINode *pSCPINode = new cSCPINode (s , t, NULL); // we have no corresponding cSCPIObject -> NULL
+                cSCPINode *pSCPINode = new cSCPINode (s , t, NULL); // we have no corresponding ScpiObject -> NULL
                 genSCPICmd(nodeNames, pSCPINode);
             }
             else

@@ -2,7 +2,7 @@
 #include "scpi.h"
 
 
-cSCPINode::cSCPINode(const QString& sNodeName, quint8 t, cSCPIObject* pSCPIObject)
+cSCPINode::cSCPINode(const QString& sNodeName, quint8 t, ScpiObject* pSCPIObject)
     :m_pSCPIObject(pSCPIObject), m_sNodeName(sNodeName), m_nType(t)
 {
 }

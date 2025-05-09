@@ -18,14 +18,14 @@ public:
     /**
       @b pointer to the real object that this node represents
       */
-    cSCPIObject* m_pSCPIObject;
+    ScpiObject* m_pSCPIObject;
     /**
       @b Initialise the const variables
       @param[in] sNodeName name of the node
       @param t type of the node
       @param[in] pSCPIObject object that handles the command
       */
-    cSCPINode(const QString& sNodeName, quint8 t, cSCPIObject* pSCPIObject);
+    cSCPINode(const QString& sNodeName, quint8 t, ScpiObject* pSCPIObject);
     /**
       @b Returns the node's type
       @relates SCPI::scpiNodeType
