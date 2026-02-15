@@ -14,7 +14,13 @@ set(PROJECT_VERSION "${resource_viewer_VERSION_MAJOR}.${resource_viewer_VERSION_
 include(FeatureSummary)
 include(GNUInstallDirs)
 
-find_package(Qt5 COMPONENTS Core Gui Widgets Network CONFIG REQUIRED)
+set(QT_MAJOR_VER "5" CACHE STRING "Qt major version")
+set(QTX "Qt${QT_MAJOR_VER}")
+
+find_package(${QTX} COMPONENTS Core Gui Widgets Network CONFIG REQUIRED)
+if("${QT_MAJOR_VER}" STREQUAL "6")
+    find_package(${QTX} COMPONENTS StateMachine REQUIRED)
+endif()
 find_package(VeinFramework REQUIRED)
 find_package(SCPI REQUIRED)
 
@@ -39,15 +45,22 @@ add_executable(zera-resource-viewer
 
 target_link_libraries(zera-resource-viewer
     PUBLIC
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
-    Qt5::Network
+    ${QTX}::Core
+    ${QTX}::Gui
+    ${QTX}::Widgets
+    ${QTX}::Network
     PRIVATE
     Zera::xiqnet
     Zera::zeraprotobuf
     Zera::SCPI
     )
+
+if("${QT_MAJOR_VER}" STREQUAL "6")
+    target_link_libraries(zera-resource-viewer
+        PUBLIC
+        ${QTX}::StateMachine
+    )
+endif()
 
 install(TARGETS zera-resource-viewer
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

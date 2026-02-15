@@ -25,7 +25,7 @@ void ResourceViewerWidget::onSendScpiQuery()
 void ResourceViewerWidget::onTvDoubleClick(QModelIndex modelIndex)
 {
     // only leafs update SCPI command
-    if(!modelIndex.child(0,0).isValid()) {
+    if (!modelIndex.model()->hasChildren(modelIndex)) {
         QModelIndex runningIndex;
         QString strSCPICmd;
         for(runningIndex = modelIndex; runningIndex.isValid(); runningIndex=runningIndex.parent()) {
