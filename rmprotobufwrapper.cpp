@@ -3,11 +3,7 @@
 #include <netmessages.pb.h>
 #include <QDebug>
 
-RMProtobufWrapper::RMProtobufWrapper()
-{
-}
-
-std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtobuf(const QByteArray &byteArray)
+std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtoRm(const QByteArray &byteArray)
 {
     ProtobufMessage::NetMessage *intermediate = new ProtobufMessage::NetMessage();
     if(!intermediate->ParseFromArray(byteArray, byteArray.size())) {
@@ -16,9 +12,4 @@ std::shared_ptr<google::protobuf::Message> RMProtobufWrapper::byteArrayToProtobu
     }
     std::shared_ptr<google::protobuf::Message> proto {intermediate};
     return proto;
-}
-
-QByteArray RMProtobufWrapper::protobufToByteArray(const google::protobuf::Message &protobufMessage)
-{
-    return QByteArray(protobufMessage.SerializeAsString().c_str(), protobufMessage.ByteSizeLong());
 }

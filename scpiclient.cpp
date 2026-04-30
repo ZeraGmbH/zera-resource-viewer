@@ -9,6 +9,7 @@
 #include <scpi.h>
 #include "scpiclient.h"
 #include "rmprotobufwrapper.h"
+#include <xiqnetwrapper.h>
 #include <tcpnetworkfactory.h>
 
 ScpiClient *ScpiClient::m_pSingletonInstance = 0;
@@ -18,7 +19,6 @@ ScpiClient::ScpiClient(QObject *parent) :
 {
     m_pNetClient = 0;
     m_pScpiModel = 0;
-    m_defaultWrapper = 0;
     setupStateMachine();
 }
 
@@ -62,7 +62,6 @@ ScpiClient *ScpiClient::getInstance()
 
 void ScpiClient::onInit()
 {
-    m_defaultWrapper = new RMProtobufWrapper();
     m_pNetClient = new VeinTcp::TcpPeer(VeinTcp::TcpNetworkFactory::create(), this);
     m_pStateInit->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionEstablished, m_pStateConnected);
     m_pStateContainer->addTransition(m_pNetClient, &VeinTcp::TcpPeer::sigConnectionClosed, m_pFinalStateDisconnected);
@@ -85,7 +84,7 @@ void ScpiClient::onConnected()
     /** @todo make id a setting
      */
     newMessage->set_body("resource-viewer");
-    m_pNetClient->sendMessage(m_defaultWrapper->protobufToByteArray(envelope));
+    m_pNetClient->sendMessage(XiQNetWrapper::protoToByteArray(envelope));
 }
 
 void ScpiClient::onIdentified()
@@ -97,7 +96,7 @@ void ScpiClient::onIdentified()
 void ScpiClient::onMessageReceived(VeinTcp::TcpPeer *peer, QByteArray message)
 {
     Q_UNUSED(peer)
-    handleMessageReceived(m_defaultWrapper->byteArrayToProtobuf(message));
+    handleMessageReceived(RMProtobufWrapper::byteArrayToProtoRm(message));
 }
 
 void ScpiClient::onDisconnected()
@@ -200,9 +199,8 @@ void ScpiClient::sendSCPIMessage(QString strCmd)
     ProtobufMessage::NetMessage envelope;
     ProtobufMessage::NetMessage::ScpiCommand* newMessage = envelope.mutable_scpi();
     newMessage->set_command(strCmd.toStdString());
-    m_pNetClient->sendMessage(m_defaultWrapper->protobufToByteArray(envelope));
+    m_pNetClient->sendMessage(XiQNetWrapper::protoToByteArray(envelope));
 }
-
 
 void ScpiClient::slotSendSCPIMessage(QString strCmd)
 {

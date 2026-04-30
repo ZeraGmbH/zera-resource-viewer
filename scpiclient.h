@@ -12,7 +12,6 @@
 #include <QDomNode>
 
 class cSCPI;
-class RMProtobufWrapper;
 
 namespace google
 {
@@ -80,7 +79,6 @@ private:
     QFinalState *m_pFinalStateDisconnected;
     VeinTcp::TcpPeer *m_pNetClient;
     QStandardItemModel *m_pScpiModel;
-    RMProtobufWrapper *m_defaultWrapper;
 };
 
 
